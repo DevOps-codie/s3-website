@@ -14,7 +14,7 @@ aws acm request-certificate --domain-name example.com --subject-alternative-name
 Creating encrypted secrets for a repository
 To create secrets for a user account repository, you must be the repository owner. To create secrets for an organization repository, you must have admin access.
 
-Use the documentation here 
+- Use the documentation here 
 https://docs.github.com/en/actions/reference/encrypted-secrets
 
 ###
