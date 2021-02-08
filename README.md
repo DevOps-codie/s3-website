@@ -9,7 +9,7 @@ Use the AWS cli to [request new ACM certifiates](http://docs.aws.amazon.com/acm/
 aws acm request-certificate --domain-name example.com --subject-alternative-names a.example.com b.example.com *.c.example.com
 ```
 
-#### yoou will need to set up github vars 
+#### Github vars 
 
 Creating encrypted secrets for a repository
 To create secrets for a user account repository, you must be the repository owner. To create secrets for an organization repository, you must have admin access.
