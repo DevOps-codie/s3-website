@@ -5,14 +5,8 @@ provider "aws" {
 }
 
 terraform {
-  backend "s3" {
-    bucket         = "copley-tfstate"
-    key            = "copley/modules/s3-website.tfstate"
-    region         = "us-east-1"
-    profile        = "default"
-    dynamodb_table = "terraform-lock"
-    encrypt        = true
-  }
+  //backend "s3" { configurue your backend here
+  //}
 }
 #########################################################
 
