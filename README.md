@@ -2,6 +2,10 @@
 builds a s3 website with cloudfront  using cloudposse aws-cloudfront-s3-cdn
 you will first need to run the command below to generate the ACM cert via the cli 
 
+###
+REPOR MAP 
+
+
 ### Generating ACM Certificate
 
 Use the AWS cli to [request new ACM certifiates](http://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request.html) (requires email validation)
