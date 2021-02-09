@@ -54,28 +54,10 @@ EOF
 }
 
 resource "aws_lambda_function" "cdn-origin-request-lambda" {
-  filename         = "dist/cdn-origin-request.zip"
-  function_name    = "cdn-origin-request"
-  role             = aws_iam_role.cdn-lambda-execution.arn
-  handler          = "handler.handler"
+  filename = "dist/cdn-origin-request.zip"
+  function_name = "cdn-origin-request"
+  role = aws_iam_role.cdn-lambda-execution.arn
+  handler = "handler.handler"
   source_code_hash = data.archive_file.cdn-origin-request-zip.output_base64sha256
-  runtime          = "nodejs12.x"
-    # this enables versioning of Lambda function
-  # Lambda@Edge requires our functions to be versioned
-  publish          = true
+  runtime = "nodejs12.x"
 }
-
-default_cache_behavior {
-
-    # ...
-
-    lambda_function_association {
-      event_type   = "origin-request"
-      # We have to provide a specific version of our Lambda function, not just @latest
-      lambda_arn   = aws_lambda_function.cdn-origin-request-lambda.qualified_arn
-      include_body = false
-    }
-
-    # 12h
-    default_ttl = 43200
-  }
