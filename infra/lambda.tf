@@ -1,92 +1,79 @@
-data template_file lambda {
-  count    = length(var.cloudfront_aliases) > 0 ? 1 : 0
-  template = file("${path.module}/index.js")
-
-  vars = {
-    redirect_to = var.redirect_to != "" ? var.redirect_to : var.cloudfront_distribution
-  }
+data "archive_file" "cdn-origin-request-zip" {
+  type        = "zip"
+  source_file = "dist/cdn-origin-request/handler.js"
+  output_path = "dist/cdn-origin-request.zip"
 }
 
-data archive_file lambda {
-  count                   = length(var.cloudfront_aliases) > 0 ? 1 : 0
-  type                    = "zip"
-  output_path             = "${path.module}/dist/lambda.zip"
-  source_content          = data.template_file.lambda[0].rendered
-  source_content_filename = "index.js"
+# Lambda at Edge requires specific execution role
+# in order to be able to execute on CF Edge Location
+
+resource "aws_iam_role_policy" "cdn-lambda-execution" {
+  name_prefix = "lambda-execution-policy-"
+  role        = aws_iam_role.cdn-lambda-execution.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:CreateLogGroup"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
 
-resource aws_lambda_function lambda {
-  count            = length(var.cloudfront_aliases) > 0 ? 1 : 0
-  provider         = aws.us-east-1
-  filename         = data.archive_file.lambda[0].output_path
-  function_name    = var.lambda_function_name
-  role             = aws_iam_role.lambda[0].arn
-  handler          = "index.handler"
-  runtime          = "nodejs10.x"
+resource "aws_iam_role" "cdn-lambda-execution" {
+  name_prefix        = "lambda-execution-role-"
+  description        = "Managed by Terraform"
+  assume_role_policy = <<EOF
+{
+   "Version": "2012-10-17",
+   "Statement": [
+      {
+         "Effect": "Allow",
+         "Principal": {
+            "Service": [
+               "lambda.amazonaws.com",
+               "edgelambda.amazonaws.com"
+            ]
+         },
+         "Action": "sts:AssumeRole"
+      }
+   ]
+}
+EOF
+}
+
+resource "aws_lambda_function" "cdn-origin-request-lambda" {
+  filename         = "dist/cdn-origin-request.zip"
+  function_name    = "cdn-origin-request"
+  role             = aws_iam_role.cdn-lambda-execution.arn
+  handler          = "handler.handler"
+  source_code_hash = data.archive_file.cdn-origin-request-zip.output_base64sha256
+  runtime          = "nodejs12.x"
+    # this enables versioning of Lambda function
+  # Lambda@Edge requires our functions to be versioned
   publish          = true
-  source_code_hash = data.archive_file.lambda[0].output_base64sha256
-
-  tags = var.tags
 }
 
-resource aws_cloudwatch_log_group logs {
-  count             = length(var.cloudfront_aliases) > 0 ? 1 : 0
-  name              = "/aws/lambda/${var.lambda_function_name}"
-  retention_in_days = 7
-  tags              = var.tags
-}
+default_cache_behavior {
 
-data aws_iam_policy_document lambda_assume_role {
-  count = length(var.cloudfront_aliases) > 0 ? 1 : 0
-  statement {
-    actions = [
-      "sts:AssumeRole",
-    ]
+    # ...
 
-    principals {
-      type = "Service"
-      identifiers = [
-        "edgelambda.amazonaws.com",
-        "lambda.amazonaws.com",
-      ]
+    lambda_function_association {
+      event_type   = "origin-request"
+      # We have to provide a specific version of our Lambda function, not just @latest
+      lambda_arn   = aws_lambda_function.cdn-origin-request-lambda.qualified_arn
+      include_body = false
     }
 
-    effect = "Allow"
+    # 12h
+    default_ttl = 43200
   }
-}
-
-resource aws_iam_role lambda {
-  count              = length(var.cloudfront_aliases) > 0 ? 1 : 0
-  name               = "LambdaRole-${var.lambda_function_name}"
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role[0].json
-}
-
-resource aws_iam_role_policy_attachment lambda_log_access {
-  count      = length(var.cloudfront_aliases) > 0 ? 1 : 0
-  role       = aws_iam_role.lambda[0].name
-  policy_arn = aws_iam_policy.lambda_log_access[0].arn
-}
-
-data aws_iam_policy_document lambda_log_access {
-  count = length(var.cloudfront_aliases) > 0 ? 1 : 0
-
-  statement {
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-    ]
-
-    resources = [
-      "arn:aws:logs:*:*:*",
-    ]
-
-    effect = "Allow"
-  }
-}
-
-resource "aws_iam_policy" "lambda_log_access" {
-  count  = length(var.cloudfront_aliases) > 0 ? 1 : 0
-  name   = "LambdaLogAccess-${var.lambda_function_name}"
-  policy = data.aws_iam_policy_document.lambda_log_access[0].json
-}
