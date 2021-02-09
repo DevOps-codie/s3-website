@@ -1,3 +1,5 @@
+//this file creates the lambda for the redirect
+
 data "archive_file" "cdn-origin-request-zip" {
   type        = "zip"
   source_file = "index.js"
