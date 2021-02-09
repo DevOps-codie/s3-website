@@ -1,4 +1,4 @@
-# s3-website
+# s3-website-cloudfront
 - builds a s3 website with cloudfront  using cloudposse aws-cloudfront-s3-cdn terraform modules
 - you will first need to run the command below to generate the ACM cert via the cli 
 - you will then run 
