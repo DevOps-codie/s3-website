@@ -11,23 +11,24 @@ terraform {
 #########################################################
 
 locals {
-  domain = "${var.env}.foo.com"
+  domain = var.domain_name
 }
 
 module "acm_request_certificate" {
   source                      = "cloudposse/acm-request-certificate/aws"
   version                     = "0.7.0"
-  domain_name                 = local.domain
+  domain_name                 = var.hosted_zone
   wait_for_certificate_issued = true
 }
 
 data "aws_route53_zone" "zone" {
-  name = local.domain
+  name = "nuro.tools"
 }
+
 module "cloudfront-s3-cdn" {
   source             = "cloudposse/cloudfront-s3-cdn/aws"
   version            = "0.34.1"
-  name               = "${var.env}-foo"
+  name               = "foo"
   encryption_enabled = true
   environment = var.env
   # DNS Settings
@@ -42,7 +43,7 @@ module "cloudfront-s3-cdn" {
   website_enabled = true
   index_document  = "index.html" # absolute path in the S3 bucket
   error_document  = "index.html" # absolute path in the S3 bucket
-  depends_on      = [module.acm_request_certificate]
+  #depends_on      = [module.acm_request_certificate]
 }
 output s3_bucket {
   description = "Name of the S3 origin bucket"
