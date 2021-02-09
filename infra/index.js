@@ -11,8 +11,8 @@ exports.handler = (event, context, callback) => {
         statusDescription: 'Found',
         headers: {
             location: [{
-                key: 'Location',
-                value: "https://${redirect_to}" + request.uri + (request.querystring === "" ? "" : "?" + request.querystring),
+                key: 'https://foo.com/foo/',
+                value: "https://foo.com/foo" + request.uri + (request.querystring === "" ? "" : "?" + request.querystring),
             }],
         },
     }
