@@ -1,6 +1,6 @@
 data "archive_file" "cdn-origin-request-zip" {
   type        = "zip"
-  source_file = "dist/cdn-origin-request/handler.js"
+  source_file = "index.js"
   output_path = "dist/cdn-origin-request.zip"
 }
 
