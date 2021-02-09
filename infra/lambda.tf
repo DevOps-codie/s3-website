@@ -3,7 +3,7 @@
 data "archive_file" "cdn-origin-request-zip" {
   type        = "zip"
   source_file = "index.js"
-  output_path = "dist/cdn-origin-request.zip"
+  output_path = "cdn-origin-request.zip"
 }
 
 # Lambda at Edge requires specific execution role
