@@ -1,13 +1,14 @@
-//this file creates the lambda for the redirect
+//This file creates the lambda for the redirect
 
+//this zips up the file for  the lambda.  
 data "archive_file" "cdn-origin-request-zip" {
   type        = "zip"
   source_file = "index.js"
   output_path = "cdn-origin-request.zip"
 }
 
-# Lambda at Edge requires specific execution role
-# in order to be able to execute on CF Edge Location
+// Lambda at Edge requires specific execution role
+// in order to be able to execute on CF Edge Location
 
 resource "aws_iam_role_policy" "cdn-lambda-execution" {
   name_prefix = "lambda-execution-policy-"
@@ -31,6 +32,7 @@ resource "aws_iam_role_policy" "cdn-lambda-execution" {
 EOF
 }
 
+//IAM role for lambda
 resource "aws_iam_role" "cdn-lambda-execution" {
   name_prefix        = "lambda-execution-role-"
   description        = "Managed by Terraform"
@@ -53,6 +55,7 @@ resource "aws_iam_role" "cdn-lambda-execution" {
 EOF
 }
 
+//Actual tf code for the lambda
 resource "aws_lambda_function" "cdn-origin-request-lambda" {
   filename = "dist/cdn-origin-request.zip"
   function_name = "cdn-origin-request"
